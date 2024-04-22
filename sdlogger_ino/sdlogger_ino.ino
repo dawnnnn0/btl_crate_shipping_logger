@@ -12,10 +12,10 @@
 // Parameters to change:
 char fileName[] = "logfile.csv";
 
-#define INITIAL_SLEEP_TIME 240 //hours; How long to sleep on power, allows to delay start of recording to save power
-#define RECORD_INTERVAL 15 //seconds; How long to collect data for during each recording interval
-#define SLEEP_BETWEEN_INTERVAL 900 //seconds; How long to sleep between recording intervals
-#define SAVE_INTERVAL 14400 //seconds; How long to delay between SD card saves. Each save uses a lot of power, so we only save occasionally
+#define INITIAL_SLEEP_TIME 0.01 //hours; How long to sleep on power, allows to delay start of recording to save power
+#define RECORD_INTERVAL 3 //seconds; How long to collect data for during each recording interval
+#define SLEEP_BETWEEN_INTERVAL 1 //seconds; How long to sleep between recording intervals
+#define SAVE_INTERVAL 10 //seconds; How long to delay between SD card saves. Each save uses a lot of power, so we only save occasionally
 #define SLEEP_BETWEEN_SAMPLES 60 //milliseconds; Time between samples, determined by data rate of accelerometer
 #define TIME_BETWEEN_SAMPLES 64 //milliseconds; Adjustment factor to keep timestamp accurate after sleep
 #define DATA_COUNT 4 //Number of data fields you are collecting. For x,y,z accelerations + temperature -> DATA_COUNT=4
