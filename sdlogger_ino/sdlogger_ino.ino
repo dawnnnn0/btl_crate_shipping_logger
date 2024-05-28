@@ -1,5 +1,6 @@
 //Libraries
 #include <Wire.h>
+#include <TimeLib.h>
 #include <BMA250.h>
 #include <RTCZero.h>            // Can only go into sleep on second intervals
                                 // Does not have power down flash or SYSTICK modifications
@@ -13,8 +14,8 @@
 char fileName[] = "logfile.csv";
 
 #define INITIAL_SLEEP_TIME 0.01 //hours; How long to sleep on power, allows to delay start of recording to save power
-#define RECORD_INTERVAL 3 //seconds; How long to collect data for during each recording interval
-#define SLEEP_BETWEEN_INTERVAL 1 //seconds; How long to sleep between recording intervals
+#define RECORD_INTERVAL 5 //seconds; How long to collect data for during each recording interval
+#define SLEEP_BETWEEN_INTERVAL 0 //seconds; How long to sleep between recording intervals
 #define SAVE_INTERVAL 10 //seconds; How long to delay between SD card saves. Each save uses a lot of power, so we only save occasionally
 #define SLEEP_BETWEEN_SAMPLES 60 //milliseconds; Time between samples, determined by data rate of accelerometer
 #define TIME_BETWEEN_SAMPLES 64 //milliseconds; Adjustment factor to keep timestamp accurate after sleep
@@ -30,6 +31,7 @@ char fileName[] = "logfile.csv";
 int wakeupTime; //Records RTC time when processor wakes up
 int prevTime; //Records RTC time (second) at each sample
 int lastSave; //Record last time data was stored (synced) on SD card
+int rtc_start = 1716584192; //<<<<<<<<<<<-------Manually set the start time of recording using epoch time--------<<<<<<<<<<<<
 int iteration = 0;
 
 RTCZero rtc; //create RTC object
@@ -141,12 +143,50 @@ String getTimestamp(int *pprevTime) {
   int t_hr =  (timeStamp % SECONDS_IN_DAY) / SECONDS_IN_HOUR;
   int t_day = (timeStamp / SECONDS_IN_DAY);
 
+  //Add starting time information
+  int rtc_duration = SECONDS_IN_DAY * t_day + SECONDS_IN_HOUR * t_hr + SECONDS_IN_MIN * t_min + t_sec;
+  int rtc_tot = rtc_start + rtc_duration;
+
   String colon = " : ";
   String dot = ".";
+  String dash = "-";
+  String timeStampString;
 
-  String timeStampString = t_day + colon + t_hr + colon +
-                           t_min + colon + t_sec + dot + t_ms;
+  timeStampString = String(year(rtc_tot)) + dash + print2digits(month(rtc_tot)) + dash + print2digits(day(rtc_tot)) + colon + 
+                           print2digits(hour(rtc_tot)) + colon + print2digits(minute(rtc_tot)) + colon + print2digits(second(rtc_tot)) + 
+                           dot + print3digits(t_ms);
   return timeStampString;
+}
+
+String print2digits(int number){
+  String output;
+  String onezero = "0";
+  if (number < 10){
+    output = onezero + number;
+  }
+  else {
+    output = number;
+  }
+  return output;
+}
+
+String print3digits(int number){
+  String output, onezero, twozero, num;
+  onezero = "0";
+  twozero = "00";
+  num = String(number);
+  if (number < 100){
+    if (number < 10){
+      output = twozero + num;
+    }
+    if (number >= 10){
+      output = onezero + num;
+    }
+  }
+  else {
+    output = num;
+  }
+  return output;
 }
 
 void writeData(String timeStamp, double pdata[]) {
