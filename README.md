@@ -5,4 +5,5 @@ Code to log acceleration, temperature, and possibly humidity. Based on [this pro
 git clone https://github.com/btcardwell/btl_crate_shipping_logger.git
 source setup.sh
 # Follow guide from turtle-tracking project linked above
+# In Arduino IDE library manager, install additional libaray "Time"
 ```
