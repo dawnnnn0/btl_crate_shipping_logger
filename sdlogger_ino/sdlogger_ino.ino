@@ -13,12 +13,12 @@
 // Parameters to change:
 char fileName[] = "logfile.csv";
 
-#define INITIAL_SLEEP_TIME 0.01 //hours; How long to sleep on power, allows to delay start of recording to save power
-#define RECORD_INTERVAL 5 //seconds; How long to collect data for during each recording interval
+#define INITIAL_SLEEP_TIME 0.5 //hours; How long to sleep on power, allows to delay start of recording to save power
+#define RECORD_INTERVAL 10 //seconds; How long to collect data for during each recording interval
 #define SLEEP_BETWEEN_INTERVAL 0 //seconds; How long to sleep between recording intervals
-#define SAVE_INTERVAL 10 //seconds; How long to delay between SD card saves. Each save uses a lot of power, so we only save occasionally
+#define SAVE_INTERVAL 5 //seconds; How long to delay between SD card saves. Each save uses a lot of power, so we only save occasionally
 #define SLEEP_BETWEEN_SAMPLES 60 //milliseconds; Time between samples, determined by data rate of accelerometer
-#define TIME_BETWEEN_SAMPLES 64 //milliseconds; Adjustment factor to keep timestamp accurate after sleep
+#define TIME_BETWEEN_SAMPLES 8 //milliseconds; Adjustment factor to keep timestamp accurate after sleep
 #define DATA_COUNT 4 //Number of data fields you are collecting. For x,y,z accelerations + temperature -> DATA_COUNT=4
 
 #define CHIP_SELECT 10
@@ -31,8 +31,9 @@ char fileName[] = "logfile.csv";
 int wakeupTime; //Records RTC time when processor wakes up
 int prevTime; //Records RTC time (second) at each sample
 int lastSave; //Record last time data was stored (synced) on SD card
-int rtc_start = 1716584192; //<<<<<<<<<<<-------Manually set the start time of recording using epoch time--------<<<<<<<<<<<<
+int rtc_start = 1718374097; //<<<<<<<<<<<-------Manually set the start time of recording using epoch time--------<<<<<<<<<<<<
 int iteration = 0;
+int itest = 0;
 
 RTCZero rtc; //create RTC object
 BMA250 accelSensor; //create BMA250 accelerometer object
@@ -60,7 +61,7 @@ void setup() {
 
   //Initialize Sensor
   Wire.begin();
-  accelSensor.begin(BMA250_range_2g, BMA250_update_time_64ms);
+  accelSensor.begin(BMA250_range_16g, BMA250_update_time_8ms);
 
   //Set alarm for initial sleep - allows for to delay recording
   rtc.setAlarmEpoch(rtc.getEpoch() + INITIAL_SLEEP_TIME * SECONDS_IN_HOUR);
@@ -87,24 +88,10 @@ void loop() {
   //Record timestamp and data
   writeData(timeStampNow, data);
 
-  // Sleep bewteen samples
-  Watchdog.sleep(SLEEP_BETWEEN_SAMPLES);
-
-  int currentTime = rtc.getEpoch();
-  //If current recording time interval is over, go to sleep for sleep period
-  if (currentTime - wakeupTime > RECORD_INTERVAL) {
-
-    //If data has not been saved to SD card recently, save the data
-    if (currentTime - lastSave > SAVE_INTERVAL) {
-
-      lastSave = currentTime;
-      file.sync();
-    }
-    
-    rtc.setAlarmEpoch(currentTime + SLEEP_BETWEEN_INTERVAL); //Set alarm SLEEP_BETWEEN_INTERVAL seconds from now
-    rtc.enableAlarm(rtc.MATCH_YYMMDDHHMMSS);
-    LowPower.sleep();
-    wakeupTime = rtc.getEpoch();
+  //Save to SD card every 6000 lines of data
+  itest += 1;
+  if (itest % 6000 == 0) {
+    file.sync();
   }
 }
 
